@@ -63,7 +63,7 @@ class InpaintGenerator(BaseNetwork):
         self.middle = nn.Sequential(*blocks)
 
         self.decoder = nn.Sequential(
-            Att(256),
+            # Att(256),
             nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1),
             nn.InstanceNorm2d(128, track_running_stats=False),
             nn.ReLU(True),
