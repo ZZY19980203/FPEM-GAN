@@ -67,7 +67,8 @@ You can test the model on all three stages: 1) edge model, 2) inpaint model and 
 python test.py --model [stage] --checkpoints [path to checkpoints] --input [path to input directory or file] --mask [path to masks directory or mask file] --output [path to the output directory]
 ```
 
-
+## Example
+![Image text](https://github.com/ZZY19980203/FPEM-GAN/blob/main/img_folder/exmple.jpg)
 
 ## Acknowledgements
 
