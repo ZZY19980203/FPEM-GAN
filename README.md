@@ -68,7 +68,7 @@ python test.py --model [stage] --checkpoints [path to checkpoints] --input [path
 ```
 
 ## Example
-Below is a display of some of our results, the original images and results can be viewed in the file /img_folder/example/.
+Below is a display of some of our results, the original images and results can be viewed in the file ``` /img_folder/example/ ```.
 
 ![Image text](https://github.com/ZZY19980203/FPEM-GAN/blob/main/img_folder/exmple.jpg)
 
