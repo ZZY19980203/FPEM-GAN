@@ -1,5 +1,7 @@
 # FPEM-GAN
 
+![Image text](https://github.com/ZZY19980203/FPEM-GAN/blob/main/img_folder/framework.jpg)
+
 ## Prerequisites
 
 - Python 3.8
