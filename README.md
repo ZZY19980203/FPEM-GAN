@@ -75,5 +75,6 @@ Below is a display of some of our results, the original images and results can b
 
 ## Acknowledgements
 
-If we missed a contribution, please contact us.
 We would like to thank [edge-connect](https://github.com/knazeri/edge-connect), [RePaint](https://github.com/andreas128/RePaint) and [guided-diffuion](https://github.com/openai/guided-diffusion.git).
+
+If we missed a contribution, please contact us.
