@@ -63,11 +63,11 @@ class InpaintGenerator(BaseNetwork):
         self.middle = nn.Sequential(*blocks)
 
         self.decoder = nn.Sequential(
-            Att(256),
+            FPEM(256),
             nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1),
             nn.InstanceNorm2d(128, track_running_stats=False),
             nn.ReLU(True),
-            Att(128),
+            FPEM(128),
 
             nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1),
             nn.InstanceNorm2d(64, track_running_stats=False),
@@ -117,11 +117,11 @@ class EdgeGenerator(BaseNetwork):
         self.middle = nn.Sequential(*blocks)
 
         self.decoder = nn.Sequential(
-            Att(256),
+            FPEM(256),
             spectral_norm(nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1), use_spectral_norm),
             nn.InstanceNorm2d(128, track_running_stats=False),
             nn.ReLU(True),
-            Att(128),
+            FPEM(128),
 
             spectral_norm(nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1), use_spectral_norm),
             nn.InstanceNorm2d(64, track_running_stats=False),
@@ -307,14 +307,36 @@ class LKA(nn.Module):
 
         return u * attn
 
+class SEBlock(nn.Module):
+    def __init__(self, in_channels, reduction_ratio=16):
+        super(SEBlock, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc1 = nn.Linear(in_channels, in_channels // reduction_ratio)
+        self.fc2 = nn.Linear(in_channels // reduction_ratio, in_channels)
 
-class Att(nn.Module):
+    def forward(self, x):
+        batch_size, channels, height, width = x.size()
+        
+        # Squeeze阶段：全局平均池化
+        out = self.avg_pool(x).view(batch_size, channels)
+        
+        # Excitation阶段：多层感知机（MLP）
+        out = F.relu(self.fc1(out))
+        out = self.fc2(out).sigmoid()
+        
+        # 重新加权输入特征图
+        out = out.view(batch_size, channels, 1, 1)
+        out = x * out.expand_as(x)
+        return out
+
+class FPEM(nn.Module):
     def __init__(self, d_model):
         super().__init__()
 
         self.proj_1 = nn.Conv2d(d_model, d_model, 1)
         self.activation = nn.GELU()
         self.spatial_gating_unit = LKA(d_model)
+        self.SEb = SEBlock(d_model)
         self.proj_2 = nn.Conv2d(d_model, d_model, 1)
 
     def forward(self, x):
@@ -323,5 +345,6 @@ class Att(nn.Module):
         x = self.activation(x)
         x = self.spatial_gating_unit(x)
         x = self.proj_2(x)
-        x = x + shorcut
+        se = self.SEb(shorcut)
+        x = x + se
         return x
