@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-
+import torch.nn.functional as F
+from .common import  gaussian_blur
 
 class AdversarialLoss(nn.Module):
     r"""
@@ -105,9 +106,10 @@ class PerceptualLoss(nn.Module):
 
         return content_loss
 
-    
-class smgan():
+
+class smgan(nn.Module):
     def __init__(self, ksize=71): 
+        super(smgan, self).__init__()
         self.ksize = ksize
         self.loss_fn = nn.MSELoss()
     
