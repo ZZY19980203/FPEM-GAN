@@ -89,6 +89,7 @@ class EdgeConnect():
         if total == 0:
             print('No training data was provided! Check \'TRAIN_FLIST\' value in the configuration file.')
             return
+        
 
         while(keep_training):
             epoch += 1
@@ -97,6 +98,7 @@ class EdgeConnect():
             progbar = Progbar(total, width=20, stateful_metrics=['epoch', 'iter'])
 
             for items in train_loader:
+                ii += 1
                 self.edge_model.train()
                 self.inpaint_model.train()
 
@@ -114,6 +116,7 @@ class EdgeConnect():
 
                     # backward
                     self.edge_model.backward(gen_loss, dis_loss)
+
                     iteration = self.edge_model.iteration
 
 
