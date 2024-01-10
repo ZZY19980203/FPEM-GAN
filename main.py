@@ -5,8 +5,10 @@ import numpy as np
 import torch
 import argparse
 from shutil import copyfile
-from src3.config import Config
-from src3.edge_connect import EdgeConnect
+from src.config import Config
+from src.edge_connect import EdgeConnect
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def main(mode=None):
