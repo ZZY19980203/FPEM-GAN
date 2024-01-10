@@ -140,8 +140,53 @@ class EdgeGenerator(BaseNetwork):
         x = self.decoder(x)
         x = torch.sigmoid(x)
         return x
+    
+class Discriminator1(BaseNetwork):
+    def __init__(self, in_channels, use_sigmoid=True, use_spectral_norm=True, init_weights=True):
+        super(Discriminator1, self).__init__()
+        self.use_sigmoid = use_sigmoid
 
-class Discriminator(BaseNetwork):
+        self.conv1 = self.features = nn.Sequential(
+            spectral_norm(nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=4, stride=2, padding=1, bias=not use_spectral_norm), use_spectral_norm),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.conv2 = nn.Sequential(
+            spectral_norm(nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4, stride=2, padding=1, bias=not use_spectral_norm), use_spectral_norm),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.conv3 = nn.Sequential(
+            spectral_norm(nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=2, padding=1, bias=not use_spectral_norm), use_spectral_norm),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.conv4 = nn.Sequential(
+            spectral_norm(nn.Conv2d(in_channels=256, out_channels=512, kernel_size=4, stride=1, padding=1, bias=not use_spectral_norm), use_spectral_norm),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.conv5 = nn.Sequential(
+            spectral_norm(nn.Conv2d(in_channels=512, out_channels=1, kernel_size=4, stride=1, padding=1, bias=not use_spectral_norm), use_spectral_norm),
+        )
+
+        if init_weights:
+            self.init_weights()
+
+    def forward(self, x):
+        conv1 = self.conv1(x)
+        conv2 = self.conv2(conv1)
+        conv3 = self.conv3(conv2)
+        conv4 = self.conv4(conv3)
+        conv5 = self.conv5(conv4)
+
+        outputs = conv5
+        if self.use_sigmoid:
+            outputs = torch.sigmoid(conv5)
+
+        return outputs, [conv1, conv2, conv3, conv4, conv5]
+
+class Discriminator2(BaseNetwork):
     """Defines a U-Net discriminator with spectral normalization (SN)
     It is used in Real-ESRGAN: Training Real-World Blind Super-Resolution with Pure Synthetic Data.
     Arg:
@@ -151,7 +196,7 @@ class Discriminator(BaseNetwork):
     """
 
     def __init__(self, num_in_ch=3, num_feat=64, skip_connection=True):
-        super(Discriminator, self).__init__()
+        super(Discriminator2, self).__init__()
         self.skip_connection = skip_connection
         norm = spectral_norm
         # the first convolution
@@ -348,3 +393,22 @@ class FPEM(nn.Module):
         se = self.SEb(shorcut)
         x = x + se
         return x
+    
+    
+# class Att(nn.Module):
+#     def __init__(self, d_model):
+#         super().__init__()
+
+#         self.proj_1 = nn.Conv2d(d_model, d_model, 1)
+#         self.activation = nn.GELU()
+#         self.spatial_gating_unit = LKA(d_model)
+#         self.proj_2 = nn.Conv2d(d_model, d_model, 1)
+
+#     def forward(self, x):
+#         shorcut = x.clone()
+#         x = self.proj_1(x)
+#         x = self.activation(x)
+#         x = self.spatial_gating_unit(x)
+#         x = self.proj_2(x)
+#         x = x + shorcut
+#         return x
